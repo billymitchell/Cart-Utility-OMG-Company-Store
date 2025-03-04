@@ -1,0 +1,62 @@
+<script>
+    // initialize let line_item_object;
+    let line_item_object;
+    let personalization_object
+
+    // Initialize the order object with order details and an empty line_items array
+    let order_object = {
+        ...{{ order | json }},
+    line_items: []
+  };
+
+    // Loop through line items and construct the line_item_object
+    {% for line_item in order.line_items %}
+
+    // reassign line_item_object 
+    line_item_object = {
+        ...{{ line_item | json }},
+    choices: [],
+        personalizations: [] // Initialize an array to hold personalizations
+    };
+
+    // Loop through personalizations and add them to the line_item_object
+    {% if line_item.product_personalizations %}
+    {% for personalization in line_item.product_personalizations %}
+
+    personalization_object = {
+        title: {{ personalization.title | json }},
+    amount: { { personalization.amount | json } },
+    attributes: [] // Initialize an array to hold attributes
+        };
+
+    // Loop through attributes and add them to personalization_object
+    {% for attribute in personalization.attributes %}
+    personalization_object.attributes.push({
+        key: {{ attribute.key | json }},
+        value: {{ attribute.value | json }} || "<not specified>"
+          });
+    {% endfor %}
+
+    // Push the personalization object into line_item_object.personalizations
+    line_item_object.personalizations.push(personalization_object);
+    {% endfor %}
+    {% endif %}
+
+    // If the line item has choices, loop through and add them
+    {% if line_item.choices %}
+    {% for choice in line_item.choices %}
+    line_item_object.choices.push({
+        ...{{ choice | json }},
+        choice_option: {{ choice.option | json }},
+        choice_sub_option: {{ choice.sub_option | json }}
+        });
+    {% endfor %}
+    {% endif %}
+
+    // Push line item with choices and personalizations into the order_object's line_items array
+    order_object.line_items.push(line_item_object);
+    {% endfor %}
+
+    // Log the final order object with line items, choices, and personalizations
+    console.log(order_object);
+</script>
