@@ -11,7 +11,7 @@
 
     // Loop through line items and construct the line_item_object
     {% for line_item in order.line_items %}
-
+    
     // reassign line_item_object 
     line_item_object = {
         ...{{ line_item | json }},
@@ -58,5 +58,5 @@
     {% endfor %}
 
     // Log the final order object with line items, choices, and personalizations
-    console.log(order_object);
+    //console.log(order_object);
 </script>

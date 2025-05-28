@@ -1,0 +1,87 @@
+<script>
+    // Initialize the order object with order details and an empty line_items array.
+    let order_object = {
+        ...{{ order | json }},
+        line_items: []
+    };
+
+    // Helper function to process product personalizations.
+    function processPersonalizations(line_item) {
+        let personalizations = [];
+        {% if line_item.product_personalizations %}
+            {% for personalization in line_item.product_personalizations %}
+                let pObj = {
+                    title: {{ personalization.title | json }},
+                    amount: {{ personalization.amount | json }},
+                    attributes: []
+                };
+
+                {% for attribute in personalization.attributes %}
+                    pObj.attributes.push({
+                        key: {{ attribute.key | json }},
+                        value: {{ attribute.value | json }} || "<not specified>"
+                    });
+                {% endfor %}
+
+                personalizations.push(pObj);
+            {% endfor %}
+        {% endif %}
+        return personalizations;
+    }
+
+    // Helper function to process choices.
+    function processChoices(line_item) {
+        let choices = [];
+        {% if line_item.choices %}
+            {% for choice in line_item.choices %}
+                choices.push({
+                    ...{{ choice | json }},
+                    choice_option: {{ choice.option | json }},
+                    choice_sub_option: {{ choice.sub_option | json }}
+                });
+            {% endfor %}
+        {% endif %}
+        return choices;
+    }
+
+    // Loop through each line item using an IIFE to create a new scope per iteration.
+    {% for line_item in order.line_items %}
+    (function() {
+        let line_item_object = {
+            ...{{ line_item | json }},
+            choices: [],
+            decorations: {{ line_item.decorations | json }},
+            decoration_method: {{ line_item.decoration_method | json }},
+            display_stock: {{ line_item.display_stock | json }},
+            errors: {{ line_item.errors | json }},
+            final_price: {{ line_item.final_price | json }},
+            final_sku: {{ line_item.final_sku | json }},
+            gift_certificate: {{ line_item.gift_certificate | json }},
+            gift_certificate_amount: {{ line_item.gift_certificate_amount | json }},
+            has_certificate_details: {{ line_item.has_certificate_details | json }},
+            has_quantity_discount: {{ line_item.has_quantity_discount | json }},
+            has_setup_charge: {{ line_item.has_setup_charge | json }},
+            id: {{ line_item.id | json }},
+            image: {{ line_item.image | json }},
+            personalizations: [],
+            product: {{ line_item.product | json }},
+            product_id: {{ line_item.product_id | json }},
+            quantity: {{ line_item.quantity | json }},
+            setup_charge: {{ line_item.setup_charge | json }},
+            sku: {{ line_item.sku | json }},
+            total_price: {{ line_item.total_price | json }},
+            unit_price: {{ line_item.unit_price | json }},
+            url: {{ line_item.url | json }},
+            vendors: {{ line_item.vendors | json }}
+        };
+
+        line_item_object.personalizations = processPersonalizations({{ line_item | json }});
+        line_item_object.choices = processChoices({{ line_item | json }});
+
+        order_object.line_items.push(line_item_object);
+    })();
+    {% endfor %}
+
+    // Log the final order object to the console.
+    console.log(order_object);
+</script>
